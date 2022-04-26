@@ -2,7 +2,7 @@
 """
 Created on Tue Apr 12 11:17:23 2022
 
-@author: khenn
+@author: Kale Henning, Jason Heiman, Rosemary Kingsley
 """
 
 class Shelf:
