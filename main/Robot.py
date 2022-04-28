@@ -20,7 +20,9 @@ class Robot:
         self.bottle = bott #puts bottle in Robot's hand
 
     def putdown(self):
-        return self.bottle #puts bottle down, removes bottle from Robot's hand
+        bot = self.bottle
+        self.bottle = None
+        return bot #puts bottle down, removes bottle from Robot's hand
     
     def stack(self, shelf):
         shelf.append(self.bottle) #add bottle to the top of the stack

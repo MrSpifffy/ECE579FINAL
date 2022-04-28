@@ -6,6 +6,7 @@ Created on Tue Apr 12 10:10:51 2022
 """
 import array
 import copy
+from distutils.command.sdist import sdist
 from multiprocessing.pool import TERMINATE
 import random
 
@@ -31,10 +32,11 @@ def initializeCustomers(customers):
             newBottle.setWaterLevel(6)
         else:
             newBottle.setWaterLevel(4)
-
         newBottle2 = copy.copy(newBottle)
-        c.addFullBottle(newBottle) #Start with 1 bottle in waterColumn and 2 in full shelf, none in empty shelf
+        newBottle3 = copy.copy(newBottle)
+        c.addFullBottle(newBottle) #Start with 1 bottle in waterColumn and 3 in the full shelf, none in empty shelf
         c.addFullBottle(newBottle2)
+        c.addFullBottle(newBottle3)
 
         correctInput = False
         while (correctInput == False):
@@ -65,8 +67,7 @@ def optimalPath(customers):
     print("\n" + "-"*40 + "\n")
 
 def replace(c):
-    #TO DO
-    fullShelf = c.getFullBottleShelf() # Fill the copied bottles in 
+    fullShelf = c.getFullBottleShelf() 
     emptyShelf = c.getEmptyBottleShelf()
     robot = c.getRobot()
 
@@ -79,45 +80,90 @@ def replace(c):
 
         c.setFullBottleShelf(fullShelf)
         c.setEmptyBottleShelf(emptyShelf)
+        
+        print("Customer " + c.name + "'s Water Bottle has been replaced. Water Level: " + str(c.getWaterColumn().getBottle().getWaterLevel()))
     except:
         print("Bottle Replacement Failed")
 
     return c
 
-def replenish(c):
-    #TO DO
-    i = 0
+def arrangeFullShelf(c):
+    fullShelf = c.getFullBottleShelf()
+    robot = c.getRobot()
+
+    newBottle = c.getWaterColumn().getBottleType()
+    if(newBottle.getCapacity() == 6):
+        newBottle.setWaterLevel(6)
+    else:
+        newBottle.setWaterLevel(4)
+    newBottle2 = copy.copy(newBottle)
+
+    try:
+        fullShelf = robot.unstack(fullShelf) # Take the last remaining off of the fullBottleShelf and place on the floor
+        oldBottle = robot.putdown()
+
+        robot.pickup(newBottle) # Stack first bottle
+        fullShelf = robot.stack(fullShelf)
+
+        robot.pickup(newBottle2) # Stack second bottle
+        fullShelf = robot.stack(fullShelf)
+
+        robot.pickup(oldBottle) # Stack old bottle
+        fullShelf = robot.stack(fullShelf)
+
+    except:
+        print("Bottle Replenishing Failed")
+    
     return c
 
-def waterConsumption():
+
+def replenish(c):
+    #Add 2 full bottles and arrange fullBottleShelf
+    c = arrangeFullShelf(c)
+    #Clear emptyBottleShelf
+    c.getEmptyBottleShelf().clear()
+    
+    print("Customer " + c.name + "'s Water is being Replenished")
+    print("Full Shelf now has " + str(len(c.getFullBottleShelf())) + " bottles, empty shelf now has " + str(len(c.getEmptyBottleShelf())) + " bottles")
+    print("") #New Line for formatting
+    return c
+
+def reportWaterLevel(c, newLevel):
+    c.getWaterColumn().getBottle().setWaterLevel(newLevel)
+    if (c.getWaterColumn().getType() == 'Chilled'):
+        try:
+            t = random.randrange(-40, 40, 1)
+            t = t / 21
+            t = t + 42
+            c.getWaterColumn().setTemp(t)
+            print("Customer " + c.name + "'s Water Level: " + str(c.getWaterColumn().getBottle().getWaterLevel()) + ", Temperature: " + str(c.getWaterColumn().getTemp()) + " F")
+        except ValueError:
+            print("Invalid WaterColumn")
+    else:
+        try:
+            print("Customer " + c.name + "'s Water Level: " + str(c.getWaterColumn().getBottle().getWaterLevel()))
+        except ValueError:
+            print("Invalid WaterColumn")
+
+def waterConsumption(day):
     for c in customers:
-        i = random.randrange(1, 5, 1)
-        w = i / 5
-        old = c.getWaterColumn().getBottle().getWaterLevel()
-        newLevel = old - w
-        if(newLevel < .25): #Replenish or replace
-            if(len(c.getFullBottleShelf()) < 2):
-                c = replenish(c) #Technician drops off two full bottles, the robot picks ups 
-                print("Customer " + c.name + "'s Water is being Replenished")
+        leak = leakMonitor(c, day) #Monitor leaks
+        if(leak == False):
+            i = random.randrange(1, 5, 1)
+            w = i / 5
+            old = c.getWaterColumn().getBottle().getWaterLevel()
+            newLevel = old - w
+            if(newLevel < .25): #Replenish or replace
+                if(len(c.getFullBottleShelf()) < 2):
+                    c = replenish(c) #Technician drops off two full bottles, the robot picks ups 
+                elif(newLevel <= 0):
+                    c.getWaterColumn().getBottle().setWaterLevel(0)
+                    c = replace(c)# Robot stacks empty bottle in shelf, picks up top bottle from full shelf and places it inside the waterColumn
+                else:
+                    reportWaterLevel(c, newLevel)
             else:
-                c = replace(c)# Robot stacks empty bottle in shelf, picks up top bottle from full shelf and places it inside the waterColumn
-                print("Customer " + c.name + "'s Water Bottle has been replaced. Water Level: " + str(c.getWaterColumn().getBottle().getWaterLevel()))
-        else:
-            c.getWaterColumn().getBottle().setWaterLevel(newLevel)
-            if (c.getWaterColumn().getType() == 'Chilled'):
-                try:
-                    t = random.randrange(-40, 40, 1)
-                    t = t / 21
-                    t = t + 42
-                    c.getWaterColumn().setTemp(t)
-                    print("Customer " + c.name + "'s Water Level: " + str(c.getWaterColumn().getBottle().getWaterLevel()) + ", Temperature: " + str(c.getWaterColumn().getTemp()) + " F")
-                except ValueError:
-                    print("Invalid WaterColumn")
-            else:
-                try:
-                    print("Customer " + c.name + "'s Water Level: " + str(c.getWaterColumn().getBottle().getWaterLevel()))
-                except ValueError:
-                    print("Invalid WaterColumn")
+                reportWaterLevel(c, newLevel)
+
     print("\n")
 
 def fillWater():
@@ -131,6 +177,30 @@ def fillWater():
         print("Water Level: " + str(c.getWaterColumn().getBottle().getWaterLevel()) + "\n")
    
     print("\n")
+
+def alarm(customer):
+    print("Dispatch has been sent to fix Leak")
+    replace(customer) #Replace empty bottle from leak
+    print("") #New Line for formatting
+
+def leakMonitor(c, day):
+    leak = False
+    if (day > 4):
+        #Generate probability of leak occuring after first few days, 3% chance
+        chance = random.randrange(1, 34, 1)
+        if(chance == 1):
+            
+            #A leak drains the current bottle
+            c.getWaterColumn().getBottle().setWaterLevel(0)
+            #Leak is found, signal alarm
+            print("Customer " + c.name + " has a leak! Their water level is: " + str(c.getWaterColumn().getBottle().getWaterLevel()))
+
+            #Dispatch someone to come fix the leak, bottle is replaced
+            alarm(c)
+            leak = True
+
+    return leak
+            
 
 def printDay(day):
     print("\n" + "-"*40 + "\n")
@@ -159,8 +229,7 @@ while(dayCycle != 'q'):
     printDay(day)
 
     #Randomly generate a drop in water level between 1/5 to 4/5 of a gallon for each customer each day cycle
-    waterConsumption()
-
+    waterConsumption(day)
 
     dayCycle = input("Press 'q' to quit, or any other key to progress to the next day: \n")
     day += 1
