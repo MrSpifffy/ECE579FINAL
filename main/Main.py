@@ -16,6 +16,10 @@ from Robot import Robot
 from Shelf import Shelf
 from Customer import Customer
 
+from TSP import solve_tsp
+from TSP import prompt_coord
+
+
 customers = [None] * 5
 customerModels = [None] * 5
 dayCycle = ''
@@ -54,34 +58,14 @@ def initializeCustomers(customers):
         c.addFullBottle(newBottle2)
         c.addFullBottle(newBottle3)
 
-        correctInput = False
-        while (correctInput == False):
-            val = input("Please enter a coordinate value for Customer " + c.name + "'s location")
-            
-
-            try:
-                num = int(val)
-                
-                if (num > 0 and num <= 100):
-                    c.distance = num
-                    correctInput = True
-                else:
-                    print("Invalid distance input, try again.\n")
-                    correctInput = False
-
-            except ValueError:
-                print("Invalid distance input, try again.\n")
-                correctInput = False
+        c.distance = prompt_coord()
 
     return customers
 
 def optimalPath(customers):
-    print("\n" + "-"*40 + "\n")
+    coords = [c.distance for c in customers]
 
-    #TO DO
-
-    print("The Optimal Delivery is path is: ")
-    print("\n" + "-"*40 + "\n")
+    solve_tsp(coords)
 
 def replace(c):
     fullShelf = c.getFullBottleShelf() 
