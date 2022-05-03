@@ -6,8 +6,8 @@ Created on Tue Apr 12 09:45:31 2022
 """
 
 class Customer:
-        def __init__(self, name, distance, waterColumn, robot) -> None:
-            self.name = name
+        def __init__(self, distance, waterColumn, robot) -> None:
+            self.name = ''
             self.distance = distance
             self.waterColumn = waterColumn
             self.fullBottleShelf = []
@@ -38,6 +38,19 @@ class Customer:
         
         def getName(self):
             return self.name
+        
+        def setName(self, nameVal):
+            if(nameVal == 0):
+                self.name = 'A'
+            elif(nameVal == 1):
+                self.name = 'B'
+            elif(nameVal == 2):
+                self.name = 'C'
+            elif(nameVal == 3):
+                self.name = 'D'
+            elif(nameVal == 4):
+                self.name = 'E'
+           
         
         def getRobot(self):
             return self.robot

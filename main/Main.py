@@ -17,14 +17,30 @@ from Shelf import Shelf
 from Customer import Customer
 
 customers = [None] * 5
+customerModels = [None] * 5
 dayCycle = ''
 
 def initializeCustomers(customers):
-    customers[0] = Customer('A', 0, Chilled(Bottle('glass', 6)), Robot("Fixed"))
-    customers[1] = Customer('B', 0, Regular(Bottle('plastic', 6)), Robot("Mobile"))
-    customers[2] = Customer('C', 0, Regular(Bottle('plastic', 4)), Robot("Mobile"))
-    customers[3] = Customer('D', 0, Chilled(Bottle('plastic', 6)), Robot("Fixed"))
-    customers[4] = Customer('E', 0, Regular(Bottle('glass', 4)), Robot("Mobile"))
+    customerModels[0] = (Customer(0, Chilled(Bottle('glass', 6)), Robot("Fixed")))
+    customerModels[1] = (Customer(0, Regular(Bottle('plastic', 6)), Robot("Mobile")))
+    customerModels[2] = (Customer(0, Regular(Bottle('plastic', 4)), Robot("Mobile")))
+    customerModels[3] = (Customer(0, Chilled(Bottle('plastic', 6)), Robot("Fixed")))
+    customerModels[4] = (Customer(0, Regular(Bottle('glass', 4)), Robot("Mobile")))
+    usedVals = []
+    
+    for x in range(5):
+        hold = False
+        while hold != True:
+            t = random.randrange(0, 5, 1)
+            if t in usedVals:
+                hold == False
+            else:
+                customers[t] = customerModels[-1]
+                customers[t].setName(t)
+                customerModels.pop()
+                usedVals.append(t)
+                hold == True
+                break
 
     for c in customers:
         newBottle = c.getWaterColumn().getBottleType()
@@ -40,7 +56,8 @@ def initializeCustomers(customers):
 
         correctInput = False
         while (correctInput == False):
-            val = input("Please enter a distance (1-100) for Customer " + c.name + ": \n")
+            val = input("Please enter a coordinate value for Customer " + c.name + "'s location")
+            
 
             try:
                 num = int(val)
@@ -173,7 +190,7 @@ def fillWater():
         size = c.getWaterColumn().getBottle().getCapacity()
         c.getWaterColumn().getBottle().setWaterLevel(size) 
         print("Customer " + c.name + "'s Water Column is " + str(c.getWaterColumn().getType()) + ", bottle is " + 
-        str(c.getWaterColumn().getBottle().getType()) + " and holds " + str(c.getWaterColumn().getBottle().getCapacity()) + " gallons")
+        str(c.getWaterColumn().getBottle().getType()) + " and holds " + str(c.getWaterColumn().getBottle().getCapacity()) + " gallons, their robot is " + c.getRobot().getLocation())
         print("Water Level: " + str(c.getWaterColumn().getBottle().getWaterLevel()) + "\n")
    
     print("\n")
