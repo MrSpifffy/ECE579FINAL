@@ -18,6 +18,7 @@ from Customer import Customer
 
 from TSP import solve_tsp
 from TSP import prompt_coord
+import numpy as np
 
 
 customers = [None] * 5
@@ -46,6 +47,8 @@ def initializeCustomers(customers):
                 hold == True
                 break
 
+    print('Dispatched center is located at coordinated (0, 0)')
+
     for c in customers:
         newBottle = c.getWaterColumn().getBottleType()
         if(newBottle.getCapacity() == 6):
@@ -63,9 +66,20 @@ def initializeCustomers(customers):
     return customers
 
 def optimalPath(customers):
+    dispatch = Customer((0, 0), Regular(Bottle('glass', 4)), Robot("Mobile"))
+    customers.insert(0, dispatch)
+    dispatch.name = "Dispatch"
     coords = [c.distance for c in customers]
+    
+    perms, dist = solve_tsp(coords)
 
-    solve_tsp(coords)
+    perms.append(0)
+    path = [customers[i].name for i in perms]
+    print('Path: {}, summed distances: {}'.format(path, dist))
+
+    customers.remove(dispatch)
+    
+
 
 def replace(c):
     fullShelf = c.getFullBottleShelf() 
